@@ -1,29 +1,33 @@
 package dataStructures.stack;
 
 public class Stack<T> {
-    private Node<T> head;
 
+    private Object[] elements;
+    private int top;
+    private int capacity;
 
-    public static class Node<T> {
-        T data;
-        Node<T> next;
-
-        Node(T data) {
-            this.data = data;
-            this.next = null;
-        }
+    public Stack(int capacity) {
+        this.capacity = capacity;
+        this.elements = new Object[capacity];
+        this.top = -1;
     }
-    public void push(T data) {
-        Node<T> newNode = new Node<>(data);
-        newNode.next = head;
-        head = newNode;
+
+    public void push(T value) {
+        if (top == capacity - 1)
+            throw new RuntimeException("Stack overflow");
+
+        elements[++top] = value;
     }
+
+    @SuppressWarnings("unchecked")
     public T pop() {
-        if (head == null) {
-            return null;
-        }
-        T data = head.data;
-        head = head.next;
-        return data;
+        if (isEmpty())
+            throw new RuntimeException("Stack underflow");
+
+        return (T) elements[top--];
+    }
+
+    public boolean isEmpty() {
+        return top == -1;
     }
 }
