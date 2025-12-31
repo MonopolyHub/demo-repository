@@ -5,6 +5,13 @@ public class Tile {
         private TileType tileType;
         private Object tileData;
 
+        public enum TileType{
+            Go,
+            PROPERTY,
+            TAX,
+            CARD,
+            JAIL
+        }
         public Tile(int tileId , TileType tileType , Object tileData){
             this.tileId = tileId;
             this.tileType = tileType;
@@ -14,17 +21,10 @@ public class Tile {
             return tileId;
         }
         public int getTileType() {
-            return  tileType;
+            return tileType.ordinal();
         }
         public Object getTileData() {
             return tileData;
-        }
-        public enum TileType{
-            Go,
-            PROPERTY,
-            TAX,
-            CARD,
-            JAIL
         }
 }
 

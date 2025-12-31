@@ -13,9 +13,12 @@ public class Queue<T> {
         this.size = 0;
     }
 
+    public Queue() {
+        this(10);
+    }
+
     public void enqueue(T value) {
-        if (size == capacity)
-            throw new RuntimeException("Queue is full");
+        if (size == capacity) shift();
 
         rear = (rear + 1) % capacity;
         elements[rear] = value;
@@ -31,6 +34,20 @@ public class Queue<T> {
         front = (front + 1) % capacity;
         size--;
         return value;
+    }
+
+    public void shift() {
+        if (isEmpty())
+            throw new RuntimeException("Queue is empty");
+
+        for (int i = 0; i < size - 1; i++) {
+            elements[(front + i) % capacity] =
+                    elements[(front + i + 1) % capacity];
+        }
+
+        rear = (rear - 1 + capacity) % capacity;
+        elements[rear] = null;
+        size--;
     }
 
     public boolean isEmpty() {

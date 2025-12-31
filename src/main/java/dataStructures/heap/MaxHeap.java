@@ -1,7 +1,7 @@
 package dataStructures.heap;
 
 public class MaxHeap {
-`
+
     private int[] heap;
     private int size;
     private int capacity;
