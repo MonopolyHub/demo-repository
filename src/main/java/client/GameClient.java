@@ -1,8 +1,8 @@
 package client;
 
 import com.google.gson.Gson;
-import common.Message;
-import common.MessageType;
+import model.common.Message;
+import model.common.MessageType;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -29,9 +29,8 @@ public class GameClient {
         while (true) {
             String cmd = console.readLine();
             MessageType type = cmd.equals("roll") ? MessageType.ROLL_DICE : MessageType.END_TURN;
-
             out.println(gson.toJson(new Message(type, UUID.randomUUID().toString(), null)));
         }
     }
 }
-}
+

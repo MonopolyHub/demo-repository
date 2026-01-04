@@ -1,4 +1,4 @@
-package common;
+package model.common;
 
 public enum MessageType {
     JOIN,

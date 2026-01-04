@@ -1,4 +1,4 @@
-package common;
+package model.common;
 
 public class Message {
     public MessageType type;

@@ -1,6 +1,6 @@
 package server;
 
-import common.Message;
+import model.common.Message;
 
 public class ClientRequest {
     private int playerId;

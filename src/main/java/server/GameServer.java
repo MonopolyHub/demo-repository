@@ -1,8 +1,8 @@
 package server;
 
 import com.google.gson.Gson;
-import common.Message;
-import common.MessageType;
+import model.common.Message;
+import model.common.MessageType;
 import dataStructures.hashtable.HashTable;
 import dataStructures.queue.BlockingQueue;
 
