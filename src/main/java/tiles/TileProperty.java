@@ -1,12 +1,14 @@
 package tiles;
 
+import tiles.data.PropertyData;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
 public class TileProperty extends Tile {
     public TileProperty(int step) {
-        super(step, TileType.PROPERTY, loadImage(), null);
+        super(step, TileType.PROPERTY, loadImage(),new PropertyData() );
     }
 
     public static Image loadImage() {

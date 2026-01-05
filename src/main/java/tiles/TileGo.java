@@ -1,12 +1,14 @@
 package tiles;
 
+import tiles.data.GoData;
+
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
 public class TileGo extends Tile {
     public TileGo(int step) {
-        super(step, TileType.Go, loadImage(), null);
+        super(step, TileType.Go, loadImage(),new GoData());
     }
 
     public static Image loadImage() {

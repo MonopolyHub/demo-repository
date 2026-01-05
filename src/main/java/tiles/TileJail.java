@@ -1,4 +1,5 @@
 package tiles;
+import tiles.data.JailData;
 
 import javax.swing.*;
 import java.awt.*;
@@ -6,7 +7,7 @@ import java.net.URL;
 
 public class TileJail extends Tile {
     public TileJail(int step) {
-        super(step, TileType.JAIL, loadImage(), null);
+        super(step, TileType.JAIL, loadImage(), new JailData() );
     }
 
     public static Image loadImage() {

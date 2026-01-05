@@ -4,29 +4,35 @@ package model;
 import dataStructures.linkedlist.Node;
 
 public class Player {
-
     private String name;
     private int id;
     private int balance;
-    private Node currentNode;
+    private Node currentPosition;
     private boolean inJail;
     private int position;
-
-
+    private Status status;
+    private int JailTurns=0;
+    private 
+    public enum Status {
+        ACTIVE,
+        INJAIL,
+        BANKRUPT
+    }
     public Player(String name, int id) {
         this.name = name;
         this.balance = 1500;
         this.inJail = false;
         this.id = id;
         this.position = 1;
+        status =Status.ACTIVE;
     }
 
-    public Node getCurrentNode() {
-        return currentNode;
+    public Node getCurrentPosition() {
+        return currentPosition;
     }
 
-    public void setCurrentNode(Node currentNode) {
-        this.currentNode = currentNode;
+    public void setCurrentPosition(Node currentPosition) {
+        this.currentPosition = currentPosition;
     }
 
     public int getBalance() {
@@ -82,6 +88,23 @@ public class Player {
         this.position +=( this.position + steps ) % 40;
 
     }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public int getJailTurns() {
+        return JailTurns;
+    }
+
+    public void setJailTurns(int jailTurns) {
+        JailTurns = jailTurns;
+    }
+
 
 
 }

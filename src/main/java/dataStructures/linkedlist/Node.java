@@ -1,6 +1,7 @@
 package dataStructures.linkedlist;
 
-import model.Tile;
+
+import tiles.Tile;
 
 public class Node {
     private Tile tile;

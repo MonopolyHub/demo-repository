@@ -1,13 +1,15 @@
-package model;
+package tiles.data;
 
-public class Property {
+import model.Player;
+
+public class PropertyData implements TileData {
 
     private String name;
     private int price;
     private int rent;
     private Player owner;
 
-    public Property(String name, int price, int rent) {
+    public PropertyData(String name, int price, int rent) {
         this.name = name;
         this.price = price;
         this.rent = rent;
