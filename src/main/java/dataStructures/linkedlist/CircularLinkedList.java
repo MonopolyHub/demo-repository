@@ -15,7 +15,6 @@ public class CircularLinkedList {
         this.size = 0;
     }
 
-
     // اضافه کردن خانه به صفحه
     public void addTile(Tile tile) {
         Node newNode = new Node(tile);
@@ -33,7 +32,6 @@ public class CircularLinkedList {
 
         size++;
     }
-
 
     // حرکت روی صفحه
     public MoveResult move(Node startNode, int steps) {
@@ -53,7 +51,7 @@ public class CircularLinkedList {
             }
         }
 
-        return new MoveResult(current, passedGO);
+        return new MoveResult(startNode, current, passedGO);
     }
 
     // Getter ها

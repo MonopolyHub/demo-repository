@@ -1,4 +1,9 @@
+
 package actions;
 
-public class Action {
+public interface Action {
+
+    void execute();   // انجام اکشن
+    void undo();      // برگرداندن اکشن
+    ActionType getType();
 }

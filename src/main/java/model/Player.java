@@ -12,6 +12,13 @@ public class Player {
     private int position;
     private Status status;
     private int JailTurns=0;
+
+    public Node getCurrentNode() {
+    }
+
+    public void setCurrentNode(Node finalNode) {
+    }
+
     private 
     public enum Status {
         ACTIVE,

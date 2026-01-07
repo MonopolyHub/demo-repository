@@ -1,6 +1,8 @@
 package model;
 
+import actions.MoveResult;
 import dataStructures.linkedlist.CircularLinkedList;
+import dataStructures.linkedlist.Node;
 
 public class Board {
     private final int steps =40;
@@ -16,5 +18,8 @@ public class Board {
     }
 
     public void intializeTiles() {
+    }
+
+    public MoveResult movePlayer(Node startNode, int steps) {
     }
 }
