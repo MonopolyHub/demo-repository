@@ -1,34 +1,32 @@
 package tiles.data;
 
-import model.Player;
-
-public class PropertyData implements TileData {
+public class PropertyData extends TileData {
 
     private String name;
     private int price;
     private int rent;
-    private Player owner;
+    private int upgradeLevel;
 
-    public PropertyData(String name, int price, int rent) {
+    public PropertyData() {
         this.name = name;
         this.price = price;
         this.rent = rent;
-        this.owner = null;
+        this.upgradeLevel = 0;
     }
 
-    public Player getOwner() {
-        return owner;
-    }
-
-    public void setOwner(Player owner) {
-        this.owner = owner;
-    }
-
-    public int getRent() {
-        return rent;
+    public String getName() {
+        return name;
     }
 
     public int getPrice() {
         return price;
+    }
+
+    public int getRent() {
+        return rent + (upgradeLevel * 50);
+    }
+
+    public void upgrade() {
+        upgradeLevel++;
     }
 }

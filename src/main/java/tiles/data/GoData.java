@@ -1,6 +1,14 @@
 package tiles.data;
 
-public class GoData implements TileData {
-    public GoData()
-    {}
+public class GoData extends TileData {
+
+    private int reward;
+
+    public GoData() {
+        this.reward = reward;
+    }
+
+    public int getReward() {
+        return reward;
+    }
 }

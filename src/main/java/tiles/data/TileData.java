@@ -1,4 +1,5 @@
 package tiles.data;
 
-public interface TileData {
+public abstract class TileData {
+    // کلاس پایه برای داده‌های خانه‌ها
 }
