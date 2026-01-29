@@ -1,19 +1,20 @@
-package tiles;
-import tiles.data.JailData;
+package tiles.block;
+
+import tiles.TileType;
+import tiles.data.TAXData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
-public class TileJail extends Tile {
-    public TileJail(int step) {
-        super(step, TileType.JAIL, loadImage(), new JailData() );
+public class TileTax extends Tile {
+    public TileTax(int step){
+        super(step, TileType.TAX,loadImage(),new TAXData());
     }
-
     public static Image loadImage() {
         URL url = TileGo.class.getResource("null");
         if (url == null) {
-            System.err.println("TileJail icon not found!");
+            System.err.println("TileTax icon not found!");
             return null;
         }
         return new ImageIcon(url).getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);

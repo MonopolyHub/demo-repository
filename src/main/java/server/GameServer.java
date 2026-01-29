@@ -1,92 +1,195 @@
 package server;
 
 import com.google.gson.Gson;
-import model.common.Message;
-import model.common.MessageType;
-import dataStructures.hashtable.HashTable;
-import dataStructures.queue.BlockingQueue;
+import com.google.gson.GsonBuilder;
+import common.Message;
+import common.MessageType;
 
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Simple multiplayer server (TCP, line-delimited JSON).
+ *
+ * Protocol:
+ * - Client connects -> server sends WELCOME with playerId
+ * - Client should send HELLO with player name
+ * - During the game, client sends command messages (ROLL_DICE / BUY_PROPERTY / END_TURN / UNDO / REDO)
+ * - Server broadcasts LOG_EVENT and STATE_UPDATE
+ */
 public class GameServer {
-    private static final int PORT = 5051;
-    private final Gson gson = new Gson();
-    private final AtomicInteger nextPlayerId = new AtomicInteger(0);
-    private final HashTable<Integer,ClientConnection> clients = new HashTable<>();
-    private final BlockingQueue<ClientRequest> queue = new BlockingQueue<>();
+
+    public static final int PORT = 5051;
+    private static final int MAX_PLAYERS = 4;
+
+    private final Semaphore capacity = new Semaphore(MAX_PLAYERS, true);
+    private final AtomicInteger nextPlayerId = new AtomicInteger(1);
+
+    private final Map<Integer, ClientConnection> clients = new HashMap<>();
     private final GameState gameState = new GameState();
+    private final Gson gson = new GsonBuilder().create();
+
     public static void main(String[] args) throws Exception {
         new GameServer().start();
     }
-    private void start() throws Exception {
+
+    public void start() throws Exception {
         ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("server started on port: " + PORT);
-        new Thread(this::processLoop).start();
+        System.out.println("Server started on port: " + PORT);
+
+        // Keep compatibility with earlier skeleton
+        new Thread(() -> {
+            while (true) {
+                gameState.process();
+                try {
+                    Thread.sleep(50);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        }).start();
+
         while (true) {
             Socket socket = serverSocket.accept();
-            int id = nextPlayerId.getAndIncrement();
-            ClientConnection connection = new ClientConnection(id,socket);
-            clients.put(id, connection);
-            gameState.addPlayer(id,"Player"+nextPlayerId.get());
-            send(connection,new Message(MessageType.WELCOME,null,id));
-            new Thread(()->readLoop(connection)).start();
-        }
-    }
-    private void processLoop() {
-        while (true) {
-            try {
-                ClientRequest req = queue.dequeue();
-                handle(req);
+
+            if (!capacity.tryAcquire()) {
+                sendServerFull(socket);
+                socket.close();
+                continue;
             }
-            catch (Exception ignored) {}
+
+            int id = nextPlayerId.getAndIncrement();
+            ClientConnection connection = new ClientConnection(id, socket);
+
+            synchronized (clients) {
+                clients.put(id, connection);
+            }
+
+            send(connection, new Message(MessageType.WELCOME, generateId(), id));
+
+            new Thread(() -> readLoop(connection)).start();
         }
     }
+
     private void readLoop(ClientConnection connection) {
         try {
-            String line;
-            while ((line = connection.getIn().readLine()) != null) {
-                Message msg = gson.fromJson(line, Message.class);
-                queue.enqueue(new ClientRequest(connection.getPlayerId(), msg));
+            while (true) {
+                Message message = connection.read();
+                if (message == null) {
+                    break;
+                }
+                handle(connection, message);
             }
-        } catch (Exception e) {
+        } catch (Exception ignored) {
+        } finally {
+            disconnect(connection);
+        }
+    }
+
+    private void handle(ClientConnection connection, Message message) {
+        int pid = connection.getPlayerId();
+
+        switch (message.type) {
+            case HELLO -> {
+                String name = (message.payload == null) ? ("Player " + pid) : String.valueOf(message.payload);
+                gameState.addPlayer(pid, name);
+                broadCast(log(name + " joined"));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case ROLL_DICE -> {
+                String text = gameState.cmdRollDice(pid);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case BUY_PROPERTY -> {
+                String text = gameState.cmdBuyProperty(pid);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case END_TURN -> {
+                String text = gameState.cmdEndTurn(pid);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case UNDO -> {
+                String text = gameState.cmdUndo(pid);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case REDO -> {
+                String text = gameState.cmdRedo(pid);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            case BUILD -> {
+                String kind = null;
+                try {
+                    if (message.payload instanceof String s) {
+                        kind = s;
+                    } else if (message.payload instanceof java.util.Map<?, ?> mp) {
+                        Object k = mp.get("kind");
+                        if (k != null) kind = String.valueOf(k);
+                    }
+                } catch (Exception ignored) {
+                }
+                String text = gameState.cmdBuild(pid, kind);
+                broadCast(log(text));
+                broadCast(new Message(MessageType.STATE_UPDATE, generateId(), gameState.snapshot()));
+            }
+            default -> send(connection, new Message(MessageType.ERROR, generateId(), "Unknown/unsupported command"));
+        }
+    }
+
+    private void disconnect(ClientConnection connection) {
+        try {
+            connection.close();
+        } catch (Exception ignored) {
+        }
+
+        synchronized (clients) {
             clients.remove(connection.getPlayerId());
         }
+        capacity.release();
+
+        broadCast(log("Player " + connection.getPlayerId() + " disconnected"));
     }
-    private void handle (ClientRequest req)
-    {
-        Message message = req.getMessage();
-        if (message.type == MessageType.ROLL_DICE)
-        {
-            if (req.getPlayerId() != gameState.getCurrentPlayer())
-            {send(clients.get(req.getPlayerId()),new Message(MessageType.ERROR, message.messageId,"Not your turn"));
-            return;}
-        }
-        int dice = gameState.rollDice();
-        gameState.movePlayer(req.getPlayerId(), dice);
-        broadCast(new Message(MessageType.LOG_EVENT,null,"player " + req.getPlayerId()+"rolled "+dice));
-        broadCast(new Message(MessageType.STATE_UPDATE,null,gameState.snapShot()));
-        if (message.type == MessageType.END_TURN)
-        {
-            gameState.endTurn();
-            broadCast(new Message(MessageType.STATE_UPDATE,null,gameState.snapShot()));
-        }
-    }
-    public void send(ClientConnection c , Message message)
-    {
-    c.getOut().println(gson.toJson(message));
-    }
-    public void broadCast(Message message)
-    {
-        for (ClientConnection c : clients.values())
-        {
-            send(c,message);
+
+    /* ========================= SEND HELPERS ========================= */
+
+    private void send(ClientConnection client, Message message) {
+        synchronized (client) {
+            client.send(message);
         }
     }
 
+    private void broadCast(Message message) {
+        synchronized (clients) {
+            for (ClientConnection c : clients.values()) {
+                c.send(message);
+            }
+        }
+    }
 
+    private void sendServerFull(Socket socket) {
+        try (PrintWriter out = new PrintWriter(socket.getOutputStream(), true)) {
+            Message message = new Message(MessageType.SERVER_FULL, generateId(), "Server is full");
+            String jsonMessage = gson.toJson(message);
+            out.println(jsonMessage);
+        } catch (IOException e) {
+            System.err.println("Failed to send 'Server Full' message: " + e.getMessage());
+        }
+    }
 
+    private Message log(String text) {
+        return new Message(MessageType.LOG_EVENT, generateId(), text);
+    }
 
-
+    private long generateId() {
+        return System.nanoTime();
+    }
 }

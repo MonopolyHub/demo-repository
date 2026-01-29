@@ -21,7 +21,7 @@ public class MoveAction implements Action {
     @Override
     public void execute() {
         Node startNode = player.getCurrentNode();
-        result = board.movePlayer(startNode, steps);
+//        result = board.movePlayer(startNode, steps);
         player.setCurrentNode(result.getFinalNode());
     }
 

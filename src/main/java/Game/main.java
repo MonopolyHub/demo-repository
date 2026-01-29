@@ -1,18 +1,26 @@
 package Game;
 
-import com.formdev.flatlaf.FlatDarculaLaf;
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import javax.swing.*;
 
+/**
+ * Entry point for Menu UI.
+ * You can also run server.GameServer and client.SwingGameClient directly.
+ */
 public class main {
-   public static void main(String[] args) {
-       SplashScreen spalsh = new SplashScreen("/images/Start.png");
-       spalsh.showSplash(2500);
-      try{
-          UIManager.setLookAndFeel(new FlatDarculaLaf());
-      } catch (Exception e) {
-         e.printStackTrace();
-      }
-      SwingUtilities.invokeLater(()-> new Menu());
-   }
+
+    public static void main(String[] args) {
+        // FlatLaf (modern look)
+        try {
+            UIManager.setLookAndFeel(new FlatDarkLaf());
+        } catch (Exception ignored) { }
+
+        // Splash (safe even without images)
+        SplashScreen splash = new SplashScreen("/images/Start.png");
+        splash.showSplash(1200);
+
+        SwingUtilities.invokeLater(Menu::new);
+    }
 }

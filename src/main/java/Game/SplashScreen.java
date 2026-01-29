@@ -3,33 +3,33 @@ package Game;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * Simple splash screen.
+ * Tries to use BackgroundPanel image if available; otherwise shows a gradient + title.
+ */
 public class SplashScreen extends JWindow {
-    protected String title;
 
-    public SplashScreen(String title) {
-        this.title = title;
-        JPanel content = new JPanel();
-        content.setBackground(Color.WHITE);
-        content.setLayout(new BorderLayout());
+    public SplashScreen(String imageResource) {
+        BackgroundPanel bg = new BackgroundPanel(imageResource);
+        bg.setLayout(new BorderLayout());
 
-        BackgroundPanel bgPanel = new BackgroundPanel(getTitle());
-        bgPanel.setLayout(new BorderLayout());
-        setContentPane(bgPanel);
-        setSize(500, 500);
+        JLabel title = new JLabel("MONOPOLY HUB", SwingConstants.CENTER);
+        title.setForeground(Color.WHITE);
+        title.setFont(title.getFont().deriveFont(Font.BOLD, 28f));
+        bg.add(title, BorderLayout.CENTER);
+
+        setContentPane(bg);
+        setSize(520, 320);
         setLocationRelativeTo(null);
     }
 
-    public void showSplash(int duration) {
+    public void showSplash(int durationMs) {
         setVisible(true);
         try {
-            Thread.sleep(duration);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.sleep(durationMs);
+        } catch (InterruptedException ignored) {
         }
         setVisible(false);
-    }
-
-    public String getTitle() {
-        return title;
+        dispose();
     }
 }

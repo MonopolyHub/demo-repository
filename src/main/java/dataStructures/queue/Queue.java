@@ -1,56 +1,76 @@
 package dataStructures.queue;
 
+/**
+ * Simple FIFO queue based on circular array (manual implementation).
+ */
 public class Queue<T> {
 
     private Object[] elements;
-    private int front, rear, size, capacity;
+    private int front;
+    private int size;
+
+    public Queue() {
+        this(16);
+    }
 
     public Queue(int capacity) {
-        this.capacity = capacity;
+        if (capacity <= 0) capacity = 16;
         this.elements = new Object[capacity];
         this.front = 0;
-        this.rear = -1;
         this.size = 0;
     }
 
-    public Queue() {
-        this(10);
+    public int size() {
+        return size;
+    }
+
+    public boolean isEmpty() {
+        return size == 0;
     }
 
     public void enqueue(T value) {
-        if (size == capacity) shift();
-
-        rear = (rear + 1) % capacity;
+        if (size == elements.length) {
+            grow();
+        }
+        int rear = (front + size) % elements.length;
         elements[rear] = value;
         size++;
     }
 
     @SuppressWarnings("unchecked")
     public T dequeue() {
-        if (isEmpty())
+        if (isEmpty()) {
             throw new RuntimeException("Queue is empty");
-
+        }
         T value = (T) elements[front];
-        front = (front + 1) % capacity;
+        elements[front] = null;
+        front = (front + 1) % elements.length;
         size--;
         return value;
     }
 
-    public void shift() {
-        if (isEmpty())
+    @SuppressWarnings("unchecked")
+    public T peek() {
+        if (isEmpty()) {
             throw new RuntimeException("Queue is empty");
-
-        for (int i = 0; i < size - 1; i++) {
-            elements[(front + i) % capacity] =
-                    elements[(front + i + 1) % capacity];
         }
-
-        rear = (rear - 1 + capacity) % capacity;
-        elements[rear] = null;
-        size--;
+        return (T) elements[front];
     }
 
-    public boolean isEmpty() {
-        return size == 0;
+    public void clear() {
+        for (int i = 0; i < size; i++) {
+            elements[(front + i) % elements.length] = null;
+        }
+        front = 0;
+        size = 0;
+    }
+
+    private void grow() {
+        Object[] newArr = new Object[elements.length * 2];
+        for (int i = 0; i < size; i++) {
+            newArr[i] = elements[(front + i) % elements.length];
+        }
+        elements = newArr;
+        front = 0;
     }
 }

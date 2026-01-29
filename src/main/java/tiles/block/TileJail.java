@@ -1,20 +1,20 @@
-package tiles;
-
-import tiles.data.GoData;
+package tiles.block;
+import tiles.TileType;
+import tiles.data.JailData;
 
 import javax.swing.*;
 import java.awt.*;
 import java.net.URL;
 
-public class TileGo extends Tile {
-    public TileGo(int step) {
-        super(step, TileType.Go, loadImage(),new GoData());
+public class TileJail extends Tile {
+    public TileJail(int step) {
+        super(step, TileType.JAIL, loadImage(), new JailData() );
     }
 
     public static Image loadImage() {
         URL url = TileGo.class.getResource("null");
         if (url == null) {
-            System.err.println("TileGo icon not found!");
+            System.err.println("TileJail icon not found!");
             return null;
         }
         return new ImageIcon(url).getImage().getScaledInstance(32, 32, Image.SCALE_SMOOTH);

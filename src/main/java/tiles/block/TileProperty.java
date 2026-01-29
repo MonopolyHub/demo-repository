@@ -1,5 +1,7 @@
-package tiles;
+package tiles.block;
 
+import tiles.ColorGroup;
+import tiles.TileType;
 import tiles.data.PropertyData;
 
 import javax.swing.*;
@@ -7,8 +9,8 @@ import java.awt.*;
 import java.net.URL;
 
 public class TileProperty extends Tile {
-    public TileProperty(int step) {
-        super(step, TileType.PROPERTY, loadImage(),new PropertyData() );
+    public TileProperty(int step, ColorGroup colorGroup) {
+        super(step, TileType.PROPERTY, loadImage(),new PropertyData(colorGroup) );
     }
 
     public static Image loadImage() {

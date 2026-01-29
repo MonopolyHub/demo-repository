@@ -4,5 +4,6 @@ public enum ActionType {
     MOVE,
     BUY_PROPERTY,
     PAY_RENT,
-    DRAW_CARD
+    DRAW_CARD,
+    BUILD
 }

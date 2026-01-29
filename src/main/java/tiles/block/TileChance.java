@@ -1,5 +1,6 @@
-package tiles;
+package tiles.block;
 
+import tiles.TileType;
 import tiles.data.ChanceData;
 
 import javax.swing.*;

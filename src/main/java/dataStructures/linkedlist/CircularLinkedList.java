@@ -1,7 +1,7 @@
 package dataStructures.linkedlist;
 
 import actions.MoveResult;
-import tiles.Tile;
+import tiles.block.Tile;
 
 public class CircularLinkedList {
 

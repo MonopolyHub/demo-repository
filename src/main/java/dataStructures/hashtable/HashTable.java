@@ -1,90 +1,139 @@
 package dataStructures.hashtable;
 
-import java.util.LinkedList;
-
+/**
+ * A small educational HashTable implementation.
+ *
+ * Manual implementation (no java.util.HashMap / LinkedList).
+ *
+ * Collision handling: separate chaining.
+ */
 public class HashTable<K, V> {
 
-    private static class Entry<K, V> {
+    private static final int DEFAULT_CAPACITY = 16;
+    private static final double MAX_LOAD_FACTOR = 0.75;
+
+    private static class EntryNode<K, V> {
         K key;
         V value;
+        EntryNode<K, V> next;
 
-        Entry(K key, V value) {
+        EntryNode(K key, V value, EntryNode<K, V> next) {
             this.key = key;
             this.value = value;
+            this.next = next;
         }
     }
 
+    private EntryNode<K, V>[] buckets;
     private int size;
-    private LinkedList<Entry<K, V>>[] table;
 
+    @SuppressWarnings("unchecked")
     public HashTable() {
-        this.size = size;
-        table = new LinkedList[size];
-
-        for (int i = 0; i < size; i++) {
-            table[i] = new LinkedList<>();
-        }
+        this.buckets = (EntryNode<K, V>[]) new EntryNode[DEFAULT_CAPACITY];
+        this.size = 0;
     }
 
-    private int hash(K key) {
-        int hash = key.hashCode();
-        if (hash < 0)
-            hash = -hash;
-        return hash % size;
+    public int size() {
+        return size;
+    }
 
+    public boolean isEmpty() {
+        return size == 0;
+    }
+
+    public boolean containsKey(K key) {
+        return get(key) != null;
     }
 
     public void put(K key, V value) {
-        int index = hash(key);
+        if (key == null) {
+            throw new IllegalArgumentException("key is null");
+        }
+        if ((size + 1) > buckets.length * MAX_LOAD_FACTOR) {
+            rehash(buckets.length * 2);
+        }
 
-        for (Entry<K, V> entry : table[index]) {
-            if (entry.key.equals(key)) {
-                entry.value = value; // update
+        int index = indexFor(key, buckets.length);
+        EntryNode<K, V> head = buckets[index];
+
+        for (EntryNode<K, V> cur = head; cur != null; cur = cur.next) {
+            if (cur.key.equals(key)) {
+                cur.value = value;
                 return;
             }
         }
 
-        table[index].add(new Entry<>(key, value)); // insert
+        buckets[index] = new EntryNode<>(key, value, head);
+        size++;
     }
 
     public V get(K key) {
-        int index = hash(key);
-
-        for (Entry<K, V> entry : table[index]) {
-            if (entry.key.equals(key)) {
-                return entry.value;
+        if (key == null) {
+            return null;
+        }
+        int index = indexFor(key, buckets.length);
+        for (EntryNode<K, V> cur = buckets[index]; cur != null; cur = cur.next) {
+            if (cur.key.equals(key)) {
+                return cur.value;
             }
         }
-
         return null;
     }
 
     public boolean remove(K key) {
-        int index = hash(key);
-
-        for (Entry<K, V> entry : table[index]) {
-            if (entry.key.equals(key)) {
-                table[index].remove(entry);
+        if (key == null) {
+            return false;
+        }
+        int index = indexFor(key, buckets.length);
+        EntryNode<K, V> cur = buckets[index];
+        EntryNode<K, V> prev = null;
+        while (cur != null) {
+            if (cur.key.equals(key)) {
+                if (prev == null) {
+                    buckets[index] = cur.next;
+                } else {
+                    prev.next = cur.next;
+                }
+                size--;
                 return true;
             }
+            prev = cur;
+            cur = cur.next;
         }
-
         return false;
     }
-    public V[] values() {
-        @SuppressWarnings("unchecked")
-        V[] result = (V[]) new Object[size];
 
-        int index = 0;
-        for (LinkedList<Entry<K, V>> entry : table) {
-            if (entry != null) {
-                result [index++] = (V) entry;
+    /**
+     * Returns all values as a compact array (size = number of keys).
+     * This is useful for reports, snapshots, etc.
+     */
+    @SuppressWarnings("unchecked")
+    public V[] values() {
+        V[] out = (V[]) new Object[size];
+        int i = 0;
+        for (int b = 0; b < buckets.length; b++) {
+            for (EntryNode<K, V> cur = buckets[b]; cur != null; cur = cur.next) {
+                out[i++] = cur.value;
             }
         }
-        return result;
+        return out;
     }
 
-    public int length() {
-        return table.length;
+    private int indexFor(K key, int mod) {
+        int h = key.hashCode();
+        if (h < 0) h = -h;
+        return h % mod;
+    }
+
+    @SuppressWarnings("unchecked")
+    private void rehash(int newCapacity) {
+        EntryNode<K, V>[] old = buckets;
+        buckets = (EntryNode<K, V>[]) new EntryNode[newCapacity];
+        size = 0;
+        for (int b = 0; b < old.length; b++) {
+            for (EntryNode<K, V> cur = old[b]; cur != null; cur = cur.next) {
+                put(cur.key, cur.value);
+            }
+        }
     }
 }

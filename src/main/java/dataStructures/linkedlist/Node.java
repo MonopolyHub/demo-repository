@@ -1,7 +1,7 @@
 package dataStructures.linkedlist;
 
 
-import tiles.Tile;
+import tiles.block.Tile;
 
 public class Node {
     private Tile tile;

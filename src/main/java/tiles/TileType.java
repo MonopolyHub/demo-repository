@@ -1,7 +1,7 @@
 package tiles;
 
 public enum TileType {
-    Go,
+    GO,
     PROPERTY,
     TAX,
     CARD,

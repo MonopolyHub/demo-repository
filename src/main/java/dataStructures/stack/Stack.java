@@ -12,10 +12,14 @@ public class Stack<T> {
         this.top = -1;
     }
 
-    public void push(T value) {
-        if (top == capacity - 1)
-            throw new RuntimeException("Stack overflow");
+    public Stack() {
+        this(64);
+    }
 
+    public void push(T value) {
+        if (top == capacity - 1) {
+            grow();
+        }
         elements[++top] = value;
     }
 
@@ -25,6 +29,31 @@ public class Stack<T> {
             throw new RuntimeException("Stack underflow");
 
         return (T) elements[top--];
+    }
+
+    @SuppressWarnings("unchecked")
+    public T peek() {
+        if (isEmpty()) {
+            throw new RuntimeException("Stack is empty");
+        }
+        return (T) elements[top];
+    }
+
+    public int size() {
+        return top + 1;
+    }
+
+    public void clear() {
+        // keep capacity, just reset top
+        top = -1;
+    }
+
+    private void grow() {
+        int newCap = capacity * 2;
+        Object[] newArr = new Object[newCap];
+        System.arraycopy(elements, 0, newArr, 0, capacity);
+        elements = newArr;
+        capacity = newCap;
     }
 
     public boolean isEmpty() {
