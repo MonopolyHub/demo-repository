@@ -8,14 +8,14 @@ public class Structure {
     private String name;
     private int price;
     private int rent;
-
+//    private String icon;
     private Player owner;
 
-    public Structure(String name, int price, int rent,  Player owner) {
+    public Structure(String name, int price, int rent, Player owner) {
         this.name = name;
         this.price = price;
         this.rent = rent;
-
+//        this.icon = icon;
         this.owner = owner;
     }
 
@@ -54,14 +54,9 @@ public class Structure {
         this.rent = rent;
     }
 
-//    public int getRahn() {
-//        return rahn;
-//    }
 
-//    public void setRahn(int rahn) {
-//        this.rahn = rahn;
-//    }
-//
+
+
 //    public String getIcon() {
 //        return icon;
 //    }

@@ -1,5 +1,6 @@
 package server;
 
+import DTO.GameStateDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import common.Message;
@@ -14,15 +15,7 @@ import java.util.Map;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Simple multiplayer server (TCP, line-delimited JSON).
- *
- * Protocol:
- * - Client connects -> server sends WELCOME with playerId
- * - Client should send HELLO with player name
- * - During the game, client sends command messages (ROLL_DICE / BUY_PROPERTY / END_TURN / UNDO / REDO)
- * - Server broadcasts LOG_EVENT and STATE_UPDATE
- */
+
 public class GameServer {
 
     public static final int PORT = 5051;
@@ -43,7 +36,6 @@ public class GameServer {
         ServerSocket serverSocket = new ServerSocket(PORT);
         System.out.println("Server started on port: " + PORT);
 
-        // Keep compatibility with earlier skeleton
         new Thread(() -> {
             while (true) {
                 gameState.process();
@@ -159,7 +151,6 @@ public class GameServer {
         broadCast(log("Player " + connection.getPlayerId() + " disconnected"));
     }
 
-    /* ========================= SEND HELPERS ========================= */
 
     private void send(ClientConnection client, Message message) {
         synchronized (client) {

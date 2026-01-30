@@ -3,9 +3,7 @@ package server;
 import DTO.GameStateDTO;
 import common.MessageType;
 
-/**
- * Converts server state to a small "allowed commands" list for UI.
- */
+
 public class ServerRules {
 
     public static MessageType[] allowedCommandsFor(GameStateDTO state) {
@@ -19,7 +17,6 @@ public class ServerRules {
 
         boolean canBuild = state.canBuildHouse || state.canBuildHotel;
 
-        // Small list, to keep GUI simple.
         if ("TURN_START".equals(phase)) {
             if (canBuild) {
                 return new MessageType[]{

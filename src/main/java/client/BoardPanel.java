@@ -16,9 +16,6 @@ import java.awt.*;
  * 3) Houses/Hotel markers for properties (if available in TileDTO.houses/hotels)
  */
 public class BoardPanel extends JPanel {
-    // index 1..4
-    private static final Color[] tokenColors = new Color[5];
-
 
     private static final int TILE_COUNT = 40;
     private static final int GRID = 11;
@@ -30,7 +27,6 @@ public class BoardPanel extends JPanel {
 
     public BoardPanel() {
         super(new GridLayout(GRID, GRID, 2, 2));
-        initDefaultTokenColors();
         setBorder(BorderFactory.createEmptyBorder(8, 8, 8, 8));
         buildGrid();
     }
@@ -125,6 +121,7 @@ public class BoardPanel extends JPanel {
         return null;
     }
 
+    // ----- Tile Cell -----
     private class TileCell extends JPanel {
 
         private final int index;
@@ -345,13 +342,13 @@ public class BoardPanel extends JPanel {
                 if (hotels > 0) {
                     g.setColor(new Color(200, 60, 60));
                     g.fillRoundRect(x, y, 16, 8, 4, 4);
-                    g.setColor(new Color(0, 0, 0, 90));
+                    g.setColor(new Color(0,0,0,90));
                     g.drawRoundRect(x, y, 16, 8, 4, 4);
                 } else {
                     g.setColor(new Color(70, 160, 90));
                     for (int i = 0; i < houses && i < 4; i++) {
                         g.fillRoundRect(x + i * 10, y, 8, 8, 3, 3);
-                        g.setColor(new Color(0, 0, 0, 70));
+                        g.setColor(new Color(0,0,0,70));
                         g.drawRoundRect(x + i * 10, y, 8, 8, 3, 3);
                         g.setColor(new Color(70, 160, 90));
                     }
@@ -370,15 +367,8 @@ public class BoardPanel extends JPanel {
             this.type = (type == null) ? "" : type.toUpperCase();
         }
 
-        @Override
-        public int getIconWidth() {
-            return 14;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return 14;
-        }
+        @Override public int getIconWidth() { return 14; }
+        @Override public int getIconHeight() { return 14; }
 
         @Override
         public void paintIcon(Component c, Graphics g0, int x, int y) {
@@ -387,29 +377,29 @@ public class BoardPanel extends JPanel {
                 g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
                 if ("GO".equals(type)) {
-                    g.setColor(new Color(60, 130, 250));
-                    g.fillOval(x + 2, y + 2, 10, 10);
+                    g.setColor(new Color(60,130,250));
+                    g.fillOval(x+2, y+2, 10, 10);
                 } else if ("JAIL".equals(type)) {
-                    g.setColor(new Color(120, 120, 120));
-                    g.fillRect(x + 3, y + 3, 8, 8);
-                    g.setColor(new Color(255, 255, 255, 160));
-                    g.drawLine(x + 5, y + 3, x + 5, y + 10);
-                    g.drawLine(x + 7, y + 3, x + 7, y + 10);
+                    g.setColor(new Color(120,120,120));
+                    g.fillRect(x+3, y+3, 8, 8);
+                    g.setColor(new Color(255,255,255,160));
+                    g.drawLine(x+5, y+3, x+5, y+10);
+                    g.drawLine(x+7, y+3, x+7, y+10);
                 } else if ("CHANCE".equals(type)) {
-                    g.setColor(new Color(230, 180, 60));
-                    g.fillRoundRect(x + 2, y + 2, 10, 10, 4, 4);
-                    g.setColor(new Color(255, 255, 255, 190));
+                    g.setColor(new Color(230,180,60));
+                    g.fillRoundRect(x+2, y+2, 10, 10, 4, 4);
+                    g.setColor(new Color(255,255,255,190));
                     g.setFont(g.getFont().deriveFont(Font.BOLD, 10f));
-                    g.drawString("?", x + 5, y + 11);
+                    g.drawString("?", x+5, y+11);
                 } else if ("TAX".equals(type)) {
-                    g.setColor(new Color(240, 80, 80));
-                    g.fillRoundRect(x + 2, y + 3, 10, 8, 4, 4);
-                    g.setColor(new Color(255, 255, 255, 190));
+                    g.setColor(new Color(240,80,80));
+                    g.fillRoundRect(x+2, y+3, 10, 8, 4, 4);
+                    g.setColor(new Color(255,255,255,190));
                     g.setFont(g.getFont().deriveFont(Font.BOLD, 9f));
-                    g.drawString("$", x + 5, y + 10);
+                    g.drawString("$", x+5, y+10);
                 } else {
-                    g.setColor(new Color(0, 0, 0, 35));
-                    g.drawOval(x + 3, y + 3, 8, 8);
+                    g.setColor(new Color(0,0,0,35));
+                    g.drawOval(x+3, y+3, 8, 8);
                 }
             } finally {
                 g.dispose();
@@ -427,15 +417,8 @@ public class BoardPanel extends JPanel {
             this.localPlayerId = localPlayerId;
         }
 
-        @Override
-        public int getIconWidth() {
-            return 60;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return 14;
-        }
+        @Override public int getIconWidth() { return 60; }
+        @Override public int getIconHeight() { return 14; }
 
         @Override
         public void paintIcon(Component c, Graphics g0, int x, int y) {
@@ -467,25 +450,15 @@ public class BoardPanel extends JPanel {
                 g.dispose();
             }
         }
-    }
 
-    public void initDefaultTokenColors() {
-        tokenColors[1] = new Color(60, 130, 250);
-        tokenColors[2] = new Color(240, 80, 80);
-        tokenColors[3] = new Color(90, 180, 110);
-        tokenColors[4] = new Color(230, 180, 60);
-    }
-
-    public void setTokenColor(int playerId, Color color) {
-        if (playerId >= 1 && playerId <= 4 && color != null) {
-            tokenColors[playerId] = color;
-            repaint();
+        private static Color tokenColor(int id) {
+            return switch (id) {
+                case 1 -> new Color(60, 130, 250);
+                case 2 -> new Color(240, 80, 80);
+                case 3 -> new Color(90, 180, 110);
+                case 4 -> new Color(230, 180, 60);
+                default -> new Color(120, 120, 120);
+            };
         }
     }
-
-    private static Color tokenColor(int id) {
-        if (id >= 1 && id <= 4 && tokenColors[id] != null) return tokenColors[id];
-        return new Color(120, 120, 120);
-    }
-
 }

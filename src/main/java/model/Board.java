@@ -22,7 +22,6 @@ public class Board {
 
     public Board() {
         this.tiles = new CircularLinkedList();
-        // must initialize before using inside intializeTiles()
         this.colorGroupProperties = new ColorGroupProperty[8];
         intializeTiles();
     }
@@ -117,4 +116,33 @@ public class Board {
     public void setColorGroupProperties(ColorGroupProperty[] colorGroupProperties) {
         this.colorGroupProperties = colorGroupProperties;
     }
+
+    public PropertyData[] getAllProperties() {
+            // محاسبه تعداد کل املاک
+            int totalProperties = 0;
+            for (ColorGroupProperty groupProperty : colorGroupProperties) {
+                if (groupProperty != null) {
+                    totalProperties += groupProperty.getProperties().size();
+                }
+            }
+
+            // ایجاد یک آرایه برای نگهداری تمامی املاک
+            PropertyData[] allProperties = new PropertyData[totalProperties];
+            int index = 0;
+
+            // عبور از تمامی گروه‌های رنگی و افزودن املاک آن‌ها به آرایه
+            for (ColorGroupProperty groupProperty : colorGroupProperties) {
+                if (groupProperty != null) {
+                    for (PropertyData property : groupProperty.getProperties()) {
+                        allProperties[index++] = property;
+                    }
+                }
+            }
+
+            // بازگشت آرایه
+            return allProperties;
+    }
+
+
+
 }

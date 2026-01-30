@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import common.Message;
 import common.MessageType;
 import tiles.block.TileProperty;
+import tiles.data.PropertyData;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -170,9 +171,7 @@ public class GameClient {
                 break;
 
             case STATE_UPDATE:
-                // اینجا وضعیت کل بازی (مکان بازیکن‌ها و ...) می‌آید
-                // چون payload در سرور به عنوان Object ارسال شده، اینجا یک LinkedTreeMap است
-                // برای استفاده واقعی باید آن را دوباره به GameStateDTO تبدیل کنید
+
                 System.out.println("🔄 Game State Updated.");
                 // GameStateDTO state = gson.fromJson(gson.toJson(msg.payload), GameStateDTO.class);
                 break;
@@ -190,26 +189,20 @@ public class GameClient {
         }
     }
 
-    // --- کلاس‌های کمکی داخلی برای تطابق با JSON سرور ---
-
-    // نگاشت نوع پیام به نوع اکشن (برای پر کردن GameAction)
     private ActionType mapTypeToActionType(MessageType type) {
         switch (type) {
-            case ROLL_DICE: return null; // رول دایس شاید اکشن تایپ نخواهد
+            case ROLL_DICE: return null;
             case BUILD: return ActionType.BUILD;
             case MORTGAGE: return ActionType.MORTGAGE;
-            // سایر موارد...
             default: return null;
         }
     }
 
-    // کپی ساختار GameAction که در سرور دارید (برای سریالایز شدن صحیح)
     static class GameAction {
         public ActionType actionType;
-        public PlayerReference actor; // در کلاینت به جای ClientConnection از رفرنس استفاده می‌کنیم
+        public PlayerReference actor;
         public PlayerReference target;
         public TileProperty property;
-        // public Structure structure;
     }
 
     // کپی Enum سرور
@@ -217,12 +210,9 @@ public class GameClient {
         TRADE, MORTGAGE, UNMORTGAGE, JAIL_PAY_FINE, JAIL_TRY_DOUBLE, BUILD
     }
 
-    // کلاسی برای شبیه‌سازی فیلد actor.getPlayerId() سمت سرور
-    // وقتی این کلاس سریالایز شود، اگر سرور انتظار آبجکت کاملی داشته باشد ممکن است به مشکل بخورد
-    // اما معمولا برای DTO فقط ID کافی است.
+
     static class PlayerReference {
         private int id;
         public PlayerReference(int id) { this.id = id; }
-        // این متد برای Gson لازم نیست اما اگر سرور مستقیماً getPlayerId صدا می‌زند شاید لازم شود
     }
 }

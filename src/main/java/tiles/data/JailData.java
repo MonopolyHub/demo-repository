@@ -6,6 +6,7 @@ public class JailData extends TileData {
     private Player playerJail;
     private Boolean isJail;
     private int jailTurns;
+    private int fine;
 
     public JailData() {
         this.jailTurns = 0;

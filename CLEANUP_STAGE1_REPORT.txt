@@ -1,6 +1,0 @@
-Stage 1 cleanup: removed unused private methods (heuristic: method name appears only once in file).
-
-Changed files: 1
-Removed methods: 1
-
-- src/main/java/server/GameState.java :: ownsFullColorGroup()

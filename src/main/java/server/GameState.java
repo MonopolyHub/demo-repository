@@ -10,6 +10,7 @@ import model.Board;
 import model.CardType;
 import model.Player;
 import model.TopK;
+import tiles.ColorGroup;
 import tiles.TileType;
 import tiles.block.*;
 import tiles.data.ChanceData;
@@ -20,23 +21,25 @@ import tiles.structures.Hotel;
 
 import java.util.Random;
 
-/**
- * Server-side "Single Source of Truth" for the game.
- *
- * This is a simplified but working implementation based on the PDF requirements:
- * - 4 players
- * - Turn management
- * - Dice roll (server-side)
- * - Move on a circular board (CircularLinkedList)
- * - Property buy + rent + tax + chance + jail
- * - Undo/Redo for last reversible action(s) (stack of Action)
- *
- * NOTE: Trade/Build/Mortgage and advanced reports can be extended on top of this base.
- */
-public class GameState {
+class GameState {
 
-    // Check if player owns all properties of the same color group
+    private boolean ownsFullColorGroup(Player player, PropertyData target) {
+        if (target.getColorGroup() == null) return false;
 
+        ColorGroup group = target.getColorGroup();
+        int owned = 0;
+        int total = 0;
+
+        for (PropertyData pd : board.getAllProperties()) {
+            if (pd.getColorGroup() == group) {
+                total++;
+                if (pd.getOwnerId() == player.getId()) {
+                    owned++;
+                }
+            }
+        }
+        return total > 0 && owned == total;
+    }
 
 
     public enum Phase {
@@ -62,7 +65,6 @@ public class GameState {
     private int turnCounter = 0;
     private Phase phase = Phase.TURN_START;
 
-    // When the current player lands on an unowned property, server waits for BUY_PROPERTY or END_TURN.
     private TileProperty pendingBuy;
 
     private TopK topK;
@@ -77,14 +79,12 @@ public class GameState {
         }
         Player p = new Player(name, id);
         p.setBalance(INITIAL_MONEY);
-        // Start at GO
         p.setCurrentNode(board.getTiles().getHead());
         p.setPosition(0);
         p.setStatus(Player.Status.ACTIVE);
         players.put(id, p);
 
         if (players.size() == MAX_PLAYERS) {
-            // First active player is player 1 by default (can be randomized later)
             currentPlayerId = 1;
             phase = Phase.TURN_START;
             Player[] arr = new Player[MAX_PLAYERS];
@@ -112,21 +112,15 @@ public class GameState {
     }
 
     public synchronized int rollDice() {
-        // 2..12
         int d1 = 1 + random.nextInt(6);
         int d2 = 1 + random.nextInt(6);
         return d1 + d2;
     }
 
-    /**
-     * Called by server loop periodically (kept for compatibility with your server skeleton).
-     * In this simplified implementation, nothing is queued here.
-     */
+
     public void process() {
-        // no-op for now
     }
 
-    /* ========================= VALIDATION HELPERS ========================= */
 
     public synchronized boolean canAct(int playerId) {
         if (!isReady()) return false;
@@ -139,7 +133,6 @@ public class GameState {
         return playerId == currentPlayerId;
     }
 
-    /* ========================= GAME COMMANDS ========================= */
 
     public synchronized String cmdRollDice(int playerId) {
         if (!canAct(playerId)) return "Not your turn";
@@ -148,7 +141,6 @@ public class GameState {
         phase = Phase.ROLL;
         Player p = players.get(playerId);
         if (p.isInJail()) {
-            // simplified jail: player skips 2 turns. We just decrease jailTurns.
             p.setJailTurns(p.getJailTurns() + 1);
             if (p.getJailTurns() >= 2) {
                 p.setInJail(false);
@@ -160,7 +152,6 @@ public class GameState {
 
         int roll = rollDice();
 
-        // Execute as an Action for undo/redo
         Action action = new server.actions.MoveAndResolveAction(this, p, roll);
         action.execute();
         undoStack.push(action);
@@ -204,7 +195,6 @@ public class GameState {
     
     public synchronized String cmdBuild(int playerId, String kind) {
         if (!canAct(playerId)) return "Not your turn";
-//        if (finished) return "Game finished";
 
         Player p = players.get(playerId);
         Tile tile = p.getCurrentNode().getTile();
@@ -220,7 +210,6 @@ public class GameState {
             return "Property is mortgaged";
         }
 
-        // Monopoly rule: you can build only if you own the full color group.
         if (pd.getColorGroup() != null) {
             tiles.ColorGroupProperty grp = board.getColorGroupProperty(pd.getColorGroup().ordinal());
             if (grp != null && !grp.propertyColorCheck(p)) {
@@ -263,7 +252,6 @@ public synchronized String cmdEndTurn(int playerId) {
 
         pendingBuy = null;
 
-        // next active player
         int next = currentPlayerId;
         for (int i = 0; i < MAX_PLAYERS; i++) {
             next = (next % MAX_PLAYERS) + 1; // 1..4
@@ -278,7 +266,6 @@ public synchronized String cmdEndTurn(int playerId) {
         phase = Phase.TURN_START;
         if (topK != null) topK.update();
 
-        // finish check
         int activeCount = 0;
         int lastActiveId = -1;
         for (int pid = 1; pid <= MAX_PLAYERS; pid++) {
@@ -299,15 +286,12 @@ public synchronized String cmdEndTurn(int playerId) {
     public synchronized String cmdUndo(int playerId) {
         if (!canAct(playerId)) return "Not your turn";
         if (undoStack.isEmpty()) return "Nothing to undo";
-        // only allowed at TURN_END or DECISION (matches PDF idea)
         if (phase != Phase.TURN_END && phase != Phase.DECISION) return "Undo not allowed now";
 
         Action a = undoStack.pop();
         a.undo();
         redoStack.push(a);
-        // If we undid a move that created a pending buy, clear it
         pendingBuy = null;
-        // after undo, we allow rolling again
         phase = Phase.TURN_START;
         return "Undo done";
     }
@@ -324,12 +308,10 @@ public synchronized String cmdEndTurn(int playerId) {
         return "Redo done";
     }
 
-    /* ========================= INTERNAL: RESOLVE TILE ========================= */
 
     public synchronized void resolveAfterMove(Player player, boolean passedGo) {
         if (passedGo) {
-            // GO reward is already handled by the GO tile data in your code;
-            // to keep consistent, we just add 200 here.
+
             player.addBalance(200);
         }
 
@@ -352,7 +334,6 @@ public synchronized String cmdEndTurn(int playerId) {
         } else if (type == TileType.CARD) {
             ChanceData cd = (ChanceData) tile.getData();
             CardType card = cd.runCard(player);
-            // simplified effects
             switch (card) {
                 case PAY_MONEY -> payToBank(player, 200);
                 case DARYAFT_MONEY -> player.addBalance(200);
@@ -361,11 +342,9 @@ public synchronized String cmdEndTurn(int playerId) {
                     player.setJailTurns(0);
                 }
                 default -> {
-                    // other card types can be implemented later
                 }
             }
         } else if (type == TileType.JAIL) {
-            // landing on jail sends player to jail (simplified)
             player.setInJail(true);
             player.setJailTurns(0);
         }
@@ -396,7 +375,6 @@ public synchronized String cmdEndTurn(int playerId) {
         // TODO: return properties to bank (required by PDF)
     }
 
-    /* ========================= SNAPSHOT ========================= */
 
     
     private int calculateRent(PropertyData data) {
@@ -431,7 +409,6 @@ public synchronized String cmdEndTurn(int playerId) {
             }
         }
         dto.players = arr;
-        // Build board tiles for GUI (names + ownership + mortgage)
         int size = board.getTiles().getSize();
         TileDTO[] tilesArr = new TileDTO[size];
         dataStructures.linkedlist.Node node = board.getTiles().getHead();
@@ -441,7 +418,6 @@ public synchronized String cmdEndTurn(int playerId) {
             td.index = t0.getIndex();
             td.type = t0.getTileType().name();
 
-            // default name
             td.name = td.type + " " + td.index;
             td.price = 0;
             td.rent = 0;
@@ -491,7 +467,6 @@ public synchronized String cmdEndTurn(int playerId) {
         }
 
 
-        // Build availability for current player (UI helpers)
         dto.canBuildHouse = false;
         dto.canBuildHotel = false;
         Player curP = players.get(dto.currentPlayerId);
@@ -502,7 +477,7 @@ public synchronized String cmdEndTurn(int playerId) {
                     boolean ownsGroup = true;
                     if (pd.getColorGroup() != null) {
                         tiles.ColorGroupProperty grp = board.getColorGroupProperty(pd.getColorGroup().ordinal());
-                        if (grp != null) ownsGroup = grp.propertyColorCheck(curP);
+                        if (grp != null) ownsGroup = grp.propertyColorCheck(p);
                     }
                 if (pd.getOwner() != null && pd.getOwner().getId() == dto.currentPlayerId && !pd.isMortgaged()) {
                     dto.canBuildHouse = (ownsGroup && !pd.isMortgaged() && !pd.isHasHotel() && pd.getHouseCount() < 4);

@@ -9,8 +9,6 @@ public class ClientConnection implements Closeable {
     private final PrintWriter out;
     private final BufferedReader in;
     private final Socket socket;
-
-    // "final" removed, added "volatile" for thread visibility
     private volatile boolean closed = false;
 
     public ClientConnection(int playerId, Socket socket) throws IOException {
@@ -36,9 +34,8 @@ public class ClientConnection implements Closeable {
         String line = in.readLine();
         if (line == null) {
             close();
-            return null; // نشان‌دهنده قطع ارتباط
+            return null;
         }
-        // تبدیل جیسون به آبجکت
         return Message.fromJson(line);
     }
 
@@ -47,7 +44,7 @@ public class ClientConnection implements Closeable {
         if (closed) return;
         closed = true;
         try {
-            socket.close(); // بستن سوکت، استریم‌ها را هم می‌بندد
+            socket.close();
         } catch (IOException e) {
             System.err.println("Error closing socket: " + e.getMessage());
         }

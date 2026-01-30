@@ -4,6 +4,7 @@ import java.util.Random;
 
 public class Dice {
     Random rand = new Random();
+    private int value;
     private Boolean rolling;
     public Dice() {}
     public int roll() {
